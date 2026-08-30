@@ -45,6 +45,7 @@ button.pri{background:var(--acc);border-color:var(--acc);color:#111}.dot{display
 <div class="row"><label>显示秒刻度</label><label class="sw"><input type="checkbox" data-k="showTicks"><span></span></label></div>
 <div class="row"><label>24 小时制</label><label class="sw"><input type="checkbox" data-k="hour24"><span></span></label></div>
 <div class="row"><label>自动熄屏<small>无操作多久后关闭屏幕；触屏/按键或 Claude 需要你时点亮</small></label><select data-k="screenOffSec" style="background:#111114;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px"><option value="0">从不</option><option value="15">15 秒</option><option value="30">30 秒</option><option value="60">1 分钟</option><option value="120">2 分钟</option><option value="300">5 分钟</option><option value="900">15 分钟</option><option value="1800">30 分钟</option></select></div>
+<div class="row"><label>接 USB 时保持常亮<small>插着 USB 就忽略上面两个超时，拔掉用电池时才生效</small></label><label class="sw"><input type="checkbox" data-k="usbAlwaysOn"><span></span></label></div>
 <div class="row"><label>自动深睡<small>无操作多久后深度睡眠（时钟保持，状态推送暂停）；BOOT 键或触屏唤醒</small></label><select data-k="sleepSec" style="background:#111114;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px"><option value="0">从不</option><option value="300">5 分钟</option><option value="600">10 分钟</option><option value="1800">30 分钟</option><option value="3600">1 小时</option><option value="7200">2 小时</option><option value="14400">4 小时</option></select></div>
 </div>
 

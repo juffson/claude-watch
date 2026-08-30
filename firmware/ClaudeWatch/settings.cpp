@@ -20,6 +20,7 @@ void settings_load() {
   g_settings.galleryIntervalSec = prefs.getUShort("gint", g_settings.galleryIntervalSec);
   g_settings.screenOffSec  = prefs.getUShort("soff", g_settings.screenOffSec);
   g_settings.sleepSec      = prefs.getUShort("slp", g_settings.sleepSec);
+  g_settings.usbAlwaysOn   = prefs.getBool("usbon", g_settings.usbAlwaysOn);
   g_settings.volume        = prefs.getUChar("vol", g_settings.volume);
   g_settings.beep          = prefs.getBool("beep", g_settings.beep);
   g_settings.autoJump      = prefs.getBool("jump", g_settings.autoJump);
@@ -49,6 +50,7 @@ void settings_save() {
   prefs.putUShort("gint", g_settings.galleryIntervalSec);
   prefs.putUShort("soff", g_settings.screenOffSec);
   prefs.putUShort("slp", g_settings.sleepSec);
+  prefs.putBool("usbon", g_settings.usbAlwaysOn);
   prefs.putUChar("vol", g_settings.volume);
   prefs.putBool("beep", g_settings.beep);
   prefs.putBool("jump", g_settings.autoJump);
@@ -62,14 +64,15 @@ void settings_to_json(char* buf, size_t len) {
            "{\"brightness\":%u,\"autoDim\":%s,\"bgColor\":\"#%06lX\",\"accentColor\":\"#%06lX\","
            "\"showTicks\":%s,\"hour24\":%s,"
            "\"wallMode\":%u,\"wallName\":\"%s\",\"wallRotateMin\":%u,\"wallDim\":%u,\"galleryIntervalSec\":%u,"
-           "\"screenOffSec\":%u,\"sleepSec\":%u,\"volume\":%u,\"beep\":%s,"
+           "\"screenOffSec\":%u,\"sleepSec\":%u,\"usbAlwaysOn\":%s,\"volume\":%u,\"beep\":%s,"
            "\"autoJump\":%s,\"autoReturnSec\":%u,\"offlineMin\":%u}",
            g_settings.brightness, g_settings.autoDim ? "true" : "false",
            (unsigned long)g_settings.bgColor, (unsigned long)g_settings.accentColor,
            g_settings.showTicks ? "true" : "false", g_settings.hour24 ? "true" : "false",
            g_settings.wallMode, g_settings.wallName, g_settings.wallRotateMin, g_settings.wallDim,
            g_settings.galleryIntervalSec,
-           g_settings.screenOffSec, g_settings.sleepSec, g_settings.volume, g_settings.beep ? "true" : "false",
+           g_settings.screenOffSec, g_settings.sleepSec, g_settings.usbAlwaysOn ? "true" : "false",
+           g_settings.volume, g_settings.beep ? "true" : "false",
            g_settings.autoJump ? "true" : "false", g_settings.autoReturnSec, g_settings.offlineMin);
 }
 
@@ -99,6 +102,7 @@ bool settings_apply_json(const char* json) {
   if (cw_json_get_int(json, "galleryIntervalSec", &n)) { g_settings.galleryIntervalSec = constrain(n, 0, 3600); any = true; }
   if (cw_json_get_int(json, "screenOffSec", &n))  { g_settings.screenOffSec = constrain(n, 0, 86400); any = true; }
   if (cw_json_get_int(json, "sleepSec", &n))      { g_settings.sleepSec = constrain(n, 0, 86400); any = true; }
+  if (cw_json_get_bool(json, "usbAlwaysOn", &b))  { g_settings.usbAlwaysOn = b; any = true; }
   if (cw_json_get_int(json, "volume", &n))        { g_settings.volume = constrain(n, 0, 100); any = true; }
   if (cw_json_get_bool(json, "beep", &b))         { g_settings.beep = b; any = true; }
   if (cw_json_get_bool(json, "autoJump", &b))     { g_settings.autoJump = b; any = true; }

@@ -20,6 +20,7 @@ struct Settings {
   // power
   uint16_t screenOffSec = 0;        // no touch/button for this long -> display off (0 = never); wakes on touch/button/WAITING
   uint16_t sleepSec     = 0;        // no touch/button for this long -> deep sleep (0 = never); wake with BOOT/touch
+  bool     usbAlwaysOn  = true;     // ignore both timeouts while USB power is present (battery-only power saving)
   // alerts
   uint8_t  volume       = 60;       // 0..100 (ES8311 DAC volume for alert tones)
   bool     beep         = true;     // tone when Claude starts WAITING / ERROR

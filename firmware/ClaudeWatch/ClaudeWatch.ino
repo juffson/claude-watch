@@ -669,9 +669,12 @@ void loop() {
     if (status_tick()) ui_status_dirty();
     {
       uint32_t idle = now - lastActivityMs;
-      if (g_settings.sleepSec && idle > (uint32_t)g_settings.sleepSec * 1000UL) enter_sleep();
-      if (g_settings.screenOffSec && !screenOff && idle > (uint32_t)g_settings.screenOffSec * 1000UL) screen_set(false);
-      if (screenOff && idle < 1500) screen_set(true);   // a touch/button just happened
+      // on USB power the watch stays on (like a phone on its dock) unless usbAlwaysOn is disabled
+      bool onUsb = pmuOk && power.isVbusIn();
+      bool timeoutsActive = !(g_settings.usbAlwaysOn && onUsb);
+      if (timeoutsActive && g_settings.sleepSec && idle > (uint32_t)g_settings.sleepSec * 1000UL) enter_sleep();
+      if (timeoutsActive && g_settings.screenOffSec && !screenOff && idle > (uint32_t)g_settings.screenOffSec * 1000UL) screen_set(false);
+      if (screenOff && (idle < 1500 || !timeoutsActive)) screen_set(true);   // touch/button, or USB plugged back in
     }
     static uint16_t saveTick = 0;
     if (++saveTick >= 300) { saveTick = 0; time_save_nvs(); }
