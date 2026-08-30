@@ -737,7 +737,7 @@ static void build_settings(lv_obj_t* parent) {
 
 bool ui_anim_heavy() {
   if (pageAnimating) return true;
-  if (curPage == PAGE_STATUS && (g_claude.state == CS_WORKING || g_claude.state == CS_WAITING)) return true;
+  // the Claude page spinner / pulse is cheap enough at 80 MHz (small invalidated areas) -> no mid tier
   if (curPage == PAGE_VOICE) {
     VoiceInfo v; voice_get(&v);
     if (v.state == VS_RECORDING || v.state == VS_SENDING || v.state == VS_PLAYING) return true;
