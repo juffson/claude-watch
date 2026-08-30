@@ -24,6 +24,9 @@ void ui_apply_settings();
 // Image set changed (upload / delete): reload wallpaper + gallery.
 void ui_images_changed();
 
+// True while something is continuously redrawing (Claude page spinner/pulse, page slide, voice) -> mid CPU clock.
+bool ui_anim_heavy();
+
 // Side button actions: single click -> clock (home), double click -> settings page.
 void ui_go_home();
 void ui_show_settings();

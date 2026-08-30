@@ -180,6 +180,7 @@ static void start_pulse(lv_obj_t* obj, lv_anim_exec_xcb_t cb, int32_t from, int3
 
 static void gallery_show(int idx);
 static void no_gesture(lv_obj_t* o);
+void cpu_boost();   // ClaudeWatch.ino: full speed for a few seconds
 
 // ---------- page switching ----------
 static void anim_x_cb(void* var, int32_t v) { lv_obj_set_x((lv_obj_t*)var, v); }
@@ -194,6 +195,7 @@ static void page_anim_ready_cb(lv_anim_t* a) {
 static void switch_page(int next, bool fromRight, bool animate) {
   if (next == curPage || next < 0 || next >= PAGES) return;
   if (curPage == PAGE_VOICE) voice_cancel();
+  cpu_boost();
   lv_obj_t* in = pages[next];
   lv_obj_t* out = pages[curPage];
   curPage = next;
@@ -352,6 +354,7 @@ static void build_status(lv_obj_t* parent) {
 // ---------- wallpaper (clock background) ----------
 static void wallpaper_apply() {
   if (!bgImg) return;
+  cpu_boost();
   int n = images_count();
   int idx = -1;
   if (n > 0 && g_settings.wallMode == 1) {
@@ -389,6 +392,7 @@ static void wallpaper_tick() {
 
 // ---------- gallery page ----------
 static void gallery_show(int idx) {
+  cpu_boost();
   int n = images_count();
   if (n == 0) {
     lv_obj_add_flag(galImg, LV_OBJ_FLAG_HIDDEN);
@@ -729,6 +733,16 @@ static void build_settings(lv_obj_t* parent) {
   lv_obj_set_style_text_color(bl, C_MUTED, 0);
   lv_label_set_text(bl, LV_SYMBOL_REFRESH "  Reboot");
   lv_obj_center(bl);
+}
+
+bool ui_anim_heavy() {
+  if (pageAnimating) return true;
+  if (curPage == PAGE_STATUS && (g_claude.state == CS_WORKING || g_claude.state == CS_WAITING)) return true;
+  if (curPage == PAGE_VOICE) {
+    VoiceInfo v; voice_get(&v);
+    if (v.state == VS_RECORDING || v.state == VS_SENDING || v.state == VS_PLAYING) return true;
+  }
+  return false;
 }
 
 void ui_on_settings_changed(void (*cb)()) { settingsChangedCb = cb; }

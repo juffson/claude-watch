@@ -263,10 +263,30 @@ void time_from_host(long long epoch) {
   }
 }
 
+// ---------------- dynamic CPU frequency ----------------
+static uint32_t lastBoostMs = 0;
+static uint32_t curMhz = 0;
+void cpu_boost() { lastBoostMs = millis(); }              // any interaction: full speed for CPU_BOOST_MS
+
+static void cpu_set(uint32_t mhz) {
+  if (mhz == curMhz) return;
+  setCpuFrequencyMhz(mhz);
+  curMhz = mhz;
+}
+
 // ---------------- activity / screen off ----------------
 static uint32_t lastActivityMs = 0;
 static bool screenOff = false;
-void activity_touch() { lastActivityMs = millis(); }     // called from touch/button handlers
+void activity_touch() { lastActivityMs = millis(); cpu_boost(); }     // called from touch/button handlers
+
+static void cpu_manage() {
+  uint32_t want;
+  if (screenOff)                                  want = CPU_MHZ_IDLE;
+  else if (millis() - lastBoostMs < CPU_BOOST_MS) want = CPU_MHZ_BOOST;
+  else if (ui_anim_heavy())                       want = CPU_MHZ_MID;
+  else                                            want = CPU_MHZ_IDLE;
+  cpu_set(want);
+}
 
 static void screen_set(bool on);   // defined after apply_brightness
 
@@ -320,7 +340,7 @@ static void screen_set(bool on) {
   if (on == !screenOff) return;
   pix_wait_idle();
   if (on) {
-    setCpuFrequencyMhz(240);
+    cpu_boost(); cpu_set(CPU_MHZ_BOOST);
     WiFi.setSleep(false);
     gfx->displayOn();
     currentBrightness = 0;                 // force apply_brightness to resend the level
@@ -334,7 +354,7 @@ static void screen_set(bool on) {
     screenOff = true;
     touchIrq = false;                      // a fresh touch will set it again -> wake
     WiFi.setSleep(true);                   // DTIM modem sleep: biggest single saving
-    setCpuFrequencyMhz(80);
+    cpu_set(CPU_MHZ_IDLE);
     Serial.println("[screen] off (inactivity) -> low-power standby");
   }
 }
@@ -360,7 +380,8 @@ static void print_info() {
                   power.isBatteryConnect() ? power.getBatteryPercent() : -1,
                   power.getBattVoltage(), power.isCharging(), power.isVbusIn());
   }
-  Serial.printf("heap     : %u free, psram %u free\n", ESP.getFreeHeap(), ESP.getFreePsram());
+  Serial.printf("heap     : %u free, psram %u free | cpu %lu MHz%s\n", ESP.getFreeHeap(), ESP.getFreePsram(),
+                (unsigned long)getCpuFrequencyMhz(), screenOff ? " (standby)" : "");
   { char dbg[96]; ui_debug_state(dbg, sizeof(dbg));
     Serial.printf("ui       : %s | touch irqs=%lu presses=%lu\n", dbg, (unsigned long)touchIrqs, (unsigned long)touchPresses); }
   Serial.printf("status   : %s\n", js);
@@ -432,6 +453,7 @@ static void handle_line(char* line) {
   }
   if (strcmp(line, "perf") == 0) {
     // stress test: force full-screen redraws for 3 s and report render + flush cost
+    cpu_set(CPU_MHZ_BOOST); cpu_boost();
     perfFlushUs = perfFlushPx = perfFlushes = 0;
     uint32_t frames = 0, t0 = millis(), renderUs = 0;
     while (millis() - t0 < 3000) {
@@ -546,6 +568,7 @@ void setup() {
   Serial.begin(115200);
   delay(200);
   Serial.println("\n[boot] ClaudeWatch");
+  cpu_set(CPU_MHZ_BOOST); cpu_boost();
   if (esp_sleep_get_wakeup_cause() != ESP_SLEEP_WAKEUP_UNDEFINED) { bootWake = "deep sleep (button/touch)"; Serial.println("[boot] woke from deep sleep, clock kept"); }
 
   setenv("TZ", TZ_INFO, 1);
@@ -707,5 +730,6 @@ void loop() {
   }
 
   if (!screenOff) ui_tick();
+  cpu_manage();
   delay(screenOff ? 40 : 4);
 }

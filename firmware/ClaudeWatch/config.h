@@ -20,6 +20,13 @@
 #define STATUS_OFFLINE_AFTER_MS (10UL * 60UL * 1000UL)  // no message -> OFFLINE
 #define AUTO_RETURN_TO_CLOCK_MS (90UL * 1000UL)         // idle/offline this long -> clock face
 
+// Dynamic CPU frequency: idle at 80 MHz, 160 MHz while the Claude page animates, 240 MHz for a
+// few seconds after any interaction (touch, button, page switch, wake) so the UI stays snappy.
+#define CPU_MHZ_BOOST   240
+#define CPU_MHZ_MID     160
+#define CPU_MHZ_IDLE    80
+#define CPU_BOOST_MS    3000
+
 #define BRIGHTNESS_DAY   220
 #define BRIGHTNESS_NIGHT 60
 #define NIGHT_START_HOUR 23
