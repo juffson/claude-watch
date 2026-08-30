@@ -313,10 +313,15 @@ static void apply_brightness() {
   }
 }
 
+// Screen off = low-power standby: panel Sleep-In, Wi-Fi modem sleep, CPU 80 MHz, LVGL paused.
+// The board keeps its IP and still receives status pushes; a touch (INT flag), a button or
+// Claude entering WAITING/ERROR brings everything back.
 static void screen_set(bool on) {
   if (on == !screenOff) return;
   pix_wait_idle();
   if (on) {
+    setCpuFrequencyMhz(240);
+    WiFi.setSleep(false);
     gfx->displayOn();
     currentBrightness = 0;                 // force apply_brightness to resend the level
     screenOff = false;
@@ -325,9 +330,12 @@ static void screen_set(bool on) {
     Serial.println("[screen] on");
   } else {
     gfx->setBrightness(0);
-    gfx->displayOff();
+    gfx->displayOff();                     // DISPOFF + SLPIN
     screenOff = true;
-    Serial.println("[screen] off (inactivity)");
+    touchIrq = false;                      // a fresh touch will set it again -> wake
+    WiFi.setSleep(true);                   // DTIM modem sleep: biggest single saving
+    setCpuFrequencyMhz(80);
+    Serial.println("[screen] off (inactivity) -> low-power standby");
   }
 }
 
@@ -638,7 +646,11 @@ void setup() {
 }
 
 void loop() {
-  lv_timer_handler();
+  if (screenOff) {
+    if (touchIrq) { touchIrq = false; activity_touch(); screen_set(true); }   // touch wakes the screen
+  } else {
+    lv_timer_handler();
+  }
   net_loop();
   serial_poll();
   buttons_poll();
@@ -691,6 +703,6 @@ void loop() {
     lastBeepState = g_claude.state;
   }
 
-  ui_tick();
-  delay(4);
+  if (!screenOff) ui_tick();
+  delay(screenOff ? 40 : 4);
 }
