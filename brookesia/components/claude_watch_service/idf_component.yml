@@ -1,0 +1,4 @@
+version: 0.1.0
+description: ClaudeWatch background service (Wi-Fi, HTTP API, mDNS, SNTP, USB console)
+dependencies:
+  espressif/mdns: "^1.4.0"

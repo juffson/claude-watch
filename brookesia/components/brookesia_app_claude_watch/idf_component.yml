@@ -1,0 +1,5 @@
+version: 0.1.0
+description: ClaudeWatch — Claude Code status + watch face as an ESP-Brookesia phone app
+dependencies:
+  brookesia_core:
+    public: true

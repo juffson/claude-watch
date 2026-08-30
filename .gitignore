@@ -1,0 +1,12 @@
+# build outputs
+firmware/build/
+brookesia/build/
+brookesia/sdkconfig
+brookesia/sdkconfig.old
+brookesia/dependencies.lock
+# downloaded by the ESP-IDF component manager on first build
+brookesia/managed_components/
+# local scratch
+*.log
+.DS_Store
+__pycache__/
