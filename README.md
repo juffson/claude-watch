@@ -181,3 +181,9 @@ python3 host/watchctl.py send idle
 - 界面为英文（LVGL 内置字体无中文）；要中文需用 `lv_font_conv` 生成含 CJK 字形的字体。
 - 触摸坐标**必须** `TOUCH_MIRROR_X/Y = true`（CST9217 原始坐标相对屏幕旋转 180°，微雪例程和 BSP 都做了镜像）。不开镜像时滑动看似正常，但点击/拖动会落到对角位置——排查方法：串口 `touchlog` 对比按压坐标和控件位置。
 - `firmware/build/` 是编译产物，可删。
+
+## 许可
+
+本项目代码采用 [MIT License](LICENSE)。仓库内随附的第三方库保留各自许可：`firmware/libraries/`（微雪例程附带的 Arduino_GFX、LVGL 8.4、SensorLib、XPowersLib 等，MIT/BSD）、
+`brookesia/components/brookesia_core`（Espressif ESP-Brookesia，Apache-2.0）、`firmware/ClaudeWatch/es8311*.c/h` 与 `es7210_reg.h`（Espressif，Apache-2.0）、
+中文字体 `font_cjk_16.c` 由 Noto Sans SC（SIL OFL 1.1）生成。
