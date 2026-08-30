@@ -180,6 +180,10 @@ static void start_pulse(lv_obj_t* obj, lv_anim_exec_xcb_t cb, int32_t from, int3
 
 static void gallery_show(int idx);
 static void no_gesture(lv_obj_t* o);
+static void apply_state_visuals(ClaudeState s);
+static void update_clock();
+static void update_status_texts();
+static void update_settings_info();
 void cpu_boost();   // ClaudeWatch.ino: full speed for a few seconds
 
 // ---------- page switching ----------
@@ -200,6 +204,14 @@ static void switch_page(int next, bool fromRight, bool animate) {
   lv_obj_t* out = pages[curPage];
   curPage = next;
   onStatusTile = (curPage == PAGE_STATUS);
+
+  // only the visible page is maintained: bring it up to date now, (re)start only its animations
+  lastSec = -1; tickSec = -1;
+  if (curPage == PAGE_CLOCK)    update_clock();
+  if (curPage == PAGE_STATUS)   update_status_texts();
+  if (curPage == PAGE_SETTINGS) update_settings_info();
+  if (shownState != (ClaudeState)0xFF) apply_state_visuals(shownState);
+  dirty = true;
 
   lv_anim_del(in, NULL);
   lv_anim_del(out, NULL);
@@ -917,12 +929,12 @@ static void apply_state_visuals(ClaudeState s) {
     case CS_WORKING:
       lv_obj_set_style_img_recolor(ringImg, C_TRACK, 0);   // image becomes the dim track
       lv_obj_clear_flag(ring, LV_OBJ_FLAG_HIDDEN);
-      start_spin(ring, 1400);
-      start_pulse(miniDot, anim_bg_opa_cb, 255, 60, 700);
+      if (curPage == PAGE_STATUS) start_spin(ring, 1400);                          // hidden pages: no animation work
+      if (curPage == PAGE_CLOCK)  start_pulse(miniDot, anim_bg_opa_cb, 255, 60, 700);
       break;
     case CS_WAITING:
-      start_pulse(ringImg, anim_img_opa_cb, 255, 50, 550);
-      start_pulse(miniDot, anim_bg_opa_cb, 255, 30, 350);
+      if (curPage == PAGE_STATUS) start_pulse(ringImg, anim_img_opa_cb, 255, 50, 550);
+      if (curPage == PAGE_CLOCK)  start_pulse(miniDot, anim_bg_opa_cb, 255, 30, 350);
       break;
     default:
       break;
@@ -1050,7 +1062,7 @@ static void update_clock() {
 }
 
 void ui_tick() {
-  update_clock();
+  if (curPage == PAGE_CLOCK) update_clock();   // hidden pages are not maintained; refreshed on switch
   wallpaper_tick();
   gallery_tick();
   voice_tick();
@@ -1081,7 +1093,7 @@ void ui_tick() {
     lastSlowMs = now;
     lastSeq = st.seq;
     dirty = false;
-    update_status_texts();
-    update_settings_info();
+    if (curPage == PAGE_STATUS) update_status_texts();
+    update_settings_info();   // self-guarded (settings page only)
   }
 }
